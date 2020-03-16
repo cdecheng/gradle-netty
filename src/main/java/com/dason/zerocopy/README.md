@@ -5,7 +5,7 @@
 内核空间缓存（数据从硬盘复制到内核缓存） -> 用户空间（内核空间将数据复制到 ） -> 内核空间（将数据复制到内核空间）-> 
 用户空间（也就是复制到对应的要操作的socket的buffer缓存中，复制到另一个操作中用来保存还是用来发送给另一个服务端/或者保存到硬盘中，暂时不考虑这个）
 ps：这里整个过程有4次拷贝，还有3次的用户空间（状态）切换，很多都是没有必要的复制，只是数据传输
-![Aaron Swartz](https://raw.githubusercontent.com/smshen/MarkdownPhotos/master/Res/test.jpg)
+![传统流程](https://github.com/cdecheng/gradle-netty/blob/master/src/main/java/com/dason/zerocopy/%E4%BC%A0%E7%BB%9Fio%E6%8B%B7%E8%B4%9D%E6%B5%81%E7%A8%8B.png?raw=true)
 
 
 ## 传统流程优化（非完全零拷贝，使用mmap优化）
