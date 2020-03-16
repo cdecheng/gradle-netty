@@ -1,0 +1,1 @@
+展示netty跟protobuf的但对象结合使用

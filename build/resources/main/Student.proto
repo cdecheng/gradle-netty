@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package com.dason.gRPC;
+
+option optimize_for = SPEED;
+option java_package = "com.dason.protobuf";
+option java_outer_classname = "StudentProto";
+option java_multiple_files = true;
+
+//请求的是对象，返回值也是对象
+service StudentService {
+
+    //请求是对象，返回值也是对象
+    rpc GetRealNamByUsername(MyRequest) returns (MyResponse) {}
+
+    //请求的是对象，返回的是stream
+    rpc GetStudentsByAge(StudentRequest) returns (stream StudentResponse) {}
+
+    //请求的是stream，返回的是对象（因为请求的是流也就是多个，返回对象的话也只能是对象列表list）
+    rpc GetStudentsWrapperByAges(stream StudentRequest) returns (StudentResponseList) {}
+
+    //请求的是stream，返回的是stream
+    rpc BiTalk(stream StreamResquest) returns (stream StreamResponse) {}
+
+ }
+
+
+
+
+message MyRequest {
+    string username = 1;
+}
+
+message MyResponse {
+    string realname = 1;
+}
+
+message StudentRequest {
+    int32 age = 1;
+}
+
+message StudentResponse {
+    string name = 1;
+    int32 age = 2;
+    string city = 3;
+}
+
+message StudentResponseList {
+    repeated StudentResponse studentResponse = 1;
+}
+
+message StreamResquest {
+    string request_info = 1;
+}
+
+message StreamResponse {
+    string response_info = 1;
+}

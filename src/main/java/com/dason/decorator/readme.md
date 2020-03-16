@@ -1,0 +1,1 @@
+装饰者模式的demo，其中该模式应用最经典的就是传统IO的场景InputStream/OutputStream这个体系

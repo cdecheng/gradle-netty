@@ -1,0 +1,2 @@
+netty中传输protobuf的一个handler传输多个protobuf对象的处理方法（因为不能一个handler就处理一个protobuf的对象，需要支持多个对象的情况
+也就是多协议的情况），比较实际的完整的方法
