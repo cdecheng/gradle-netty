@@ -25,12 +25,9 @@ repositories {
     mavenCentral()
 }
 
-//todo 要研究指定生成的java文件路径，这样就编写好proto文件点击一下构建命令就可以用了，不用动手移动代码
-
-
 dependencies {
     compile(
-            "io.netty:netty-all:4.1.10.Final",
+            "io.netty:netty-all:4.1.15.Final",
             "com.google.protobuf:protobuf-java:3.11.0",
             "com.google.protobuf:protobuf-java-util:3.11.0",
             "org.apache.thrift:libthrift:0.12.0",
