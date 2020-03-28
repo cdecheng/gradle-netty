@@ -45,7 +45,7 @@ public class NioServer {
                 System.out.println("等待1秒，没有连接的事件发生");
                 continue;
             }
-            //如果存在事件，获取该Selector所有的的selectionKey（包括没有事件的）
+            //如果存在事件，获取该Selector所有有事件发生的selectionKey
             Set<SelectionKey> selectionKeys = selector.selectedKeys();
             System.out.println("获取的selectionKeys 数量 = " + selectionKeys.size());
             //添加set的迭代器，方便下面遍历
