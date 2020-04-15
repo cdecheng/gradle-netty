@@ -17,13 +17,14 @@ public class MyServer {
 
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).
-                    childHandler(new MyServerInitializer()); //自定义一个初始化类
+            childHandler(new MyServerInitializer()); //自定义一个初始化类
 
 
             ChannelFuture channelFuture = serverBootstrap.bind(7000).sync();
 //            channelFuture.addListener();
 //            channelFuture.await();// 尽量不要使用，看源码注释就知道
-            channelFuture.channel().closeFuture().sync();
+            //这里是同步获取到ChannelFuture，如果关闭Channle的时候才会获取到，只是一个注册关闭事件
+            ChannelFuture future = channelFuture.channel().closeFuture().sync();
 
         } finally {
             bossGroup.shutdownGracefully();
