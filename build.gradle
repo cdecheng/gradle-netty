@@ -38,6 +38,8 @@ dependencies {
             //日志输出
             "org.slf4j:slf4j-api:1.7.10",
             "org.slf4j:slf4j-log4j12:1.7.10",
+            //lambda表达式支持
+            'org.projectlombok:lombok:1.18.10',
     )
 }
 
