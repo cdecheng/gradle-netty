@@ -34,7 +34,10 @@ dependencies {
             //protobuf 编译器
             "io.grpc:grpc-netty-shaded:1.27.1",
             "io.grpc:grpc-protobuf:1.27.1",
-            "io.grpc:grpc-stub:1.27.1"
+            "io.grpc:grpc-stub:1.27.1",
+            //日志输出
+            "org.slf4j:slf4j-api:1.7.10",
+            "org.slf4j:slf4j-log4j12:1.7.10",
     )
 }
 
