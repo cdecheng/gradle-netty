@@ -17,6 +17,12 @@ public class MyServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         ctx.close();
     }
 
+    /**
+     * 这里的demo就是展示粘包的问题了，传输的数据可能是十次请求的，但是这里只是作为一次进行解析处理
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
 
