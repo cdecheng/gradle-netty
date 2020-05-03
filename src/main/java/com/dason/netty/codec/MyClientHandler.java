@@ -1,5 +1,7 @@
 package com.dason.netty.codec;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -18,13 +20,13 @@ public class MyClientHandler extends SimpleChannelInboundHandler<Long> {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
         //使用客户端发送10条数据  这里是没有使用编码器，所以需要我们手动创建ByteBuf对象传输
-//        for(int i= 0; i< 10; ++i) {
-//            ByteBuf buffer = Unpooled.copyLong(i + 1l);
-//            ctx.writeAndFlush(buffer);
-//        }
+        for(int i= 0; i< 10; ++i) {
+            ByteBuf buffer = Unpooled.copyLong(i + 1l);
+            ctx.writeAndFlush(buffer);
+        }
 
         //这是有编码器，自动帮我们编码
-        ctx.writeAndFlush(8888888l);
+//        ctx.writeAndFlush(8888888l);
     }
 
     @Override
