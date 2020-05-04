@@ -404,7 +404,65 @@ netty内置的还有几个相对比较重要的编解码器如下图，其中最
 >
 >   以上就是官方文档提供的基本上所有能用的场景的所有组合情况了，用好四个属性，然后将该解码器用到我们用一个长度字段描述实际内容长度的协议中基本上可以直接用了，因为四个属性基本上能够组合完了。组合后就剩下我们要的协议描述长度+实际内容，或者全部数据都保留但是能够区分我们要的内容对象了，将其解码出来。如下一个解码demo：
 >
+>   怎么使用：既然是内置的编解码器，那就是说可以直接使用的，不需要再去重写方法什么的，上面的那么多的使用说明，都是*LengthFieldBasedFrameDecoder*构造方法的入参，只要我们添加改解码处理器的时候使用构造方法确定入参就可以了（当然可以继承改写后使用），不过这个解码器的解码结果还是一个ByteBuf的子类*PooledSlicedByteBuf*所以，我们需要再次解码，这是目前通过测试得到的结果。说明解码的结果我们还需要解码一次，不过我猜测（仅仅是猜测并没有去验证--已经验证）：这个就像该方法的javadoc文档说明一下，经过*LengthFieldBasedFrameDecoder*的解码后或者验证后，得到我们要的消息长度+内容了，或者有个别消息头，等于帮我们过滤了绝大部分的无用消息头，直接得到的就是要么就是内容的ByteBuf要么就是长度+内容组成的Bytebuf对象，毕竟一个比较强壮的请求协议类似http请求，是会有很多的请求头的，如果我们要一个个判断处理各种请求头的话，这个过程会比较麻烦，但是使用*LengthFieldBasedFrameDecoder*的话，就会帮我们去掉无用的请求头了，就剩下我们要的ByteBuf可以再进行一次简单的解码，就可以得到我们要的结果了；
+>
+>   ![image-20200504233124461](image-20200504233124461.png)
+>
+>   ![image-20200504233256362](image-20200504233256362.png)
+>
+>   上面是直接使用*LengthFieldBasedFrameDecoder*来进行的解码操作，解码结果就是将我们接收的数据处理之后切割到最后只剩下我们想要的部分数据，然后存放在一个ByteBuf中。如果想上面那样直接使用的话，我们还需要再使用一个解码器进行二次解码，实际上不需要那样的，重写*LengthFieldBasedFrameDecoder*类的*decode()*方法，重写的核心在于，先是调用默认的*decode()*这个解码结果是我们上面说的切割后的ByteBuf对象，然后我们根据我们切割后的ByteBuf来解码成我们要的目标对象，这样就可以简化我们的开发工作了。（说到底其实并没简化很多，主要就是自定义协议如果有一堆的各种各样的请求头之类，能够帮我们切割只剩下我们要的数据内容，然后我们再将切割后的数据ByteBuf进行解码成我们要的目标对象）
+>
+>   ```java
+>   public class TestLengthFieldBasedFrameDecoder extends LengthFieldBasedFrameDecoder {
 >   
+>       public TestLengthFieldBasedFrameDecoder(int maxFrameLength, int lengthFieldOffset, int lengthFieldLength,
+>                                               int lengthAdjustment, int initialBytesToStrip) {
+>           super(maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip);
+>       }
+>   
+>       @Override
+>       protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+>   
+>           //这里的结果就是根据我们的构造方法，根据入参的构造方法进行相关传递过来的数据进行校验或者进行一些切割或者整理
+>           //最后根据构造方法的入参输出构造后的结果，然后我们在这里根据LengthFieldBasedFrameDecoder处理后的结果ByteBuf进行
+>           //我们实际的解码操作， 也就是这里这些操作，所以实际上，LengthFieldBasedFrameDecoder并没做什么很多事情，只是一些常规的处理
+>           //不理解为什么会说这个解码器很厉害，目前在我这里不建议使用，如果是自定义协议解码的话，建议自己完整写一个解码器，这个不难
+>           //要注意的是解码器的编写可以参考LengthFieldBasedFrameDecoder的decode()方法进行一系列强化性判断
+>           ByteBuf decodeByteBuf = (ByteBuf) super.decode(ctx, in);
+>           int length = decodeByteBuf.readInt();
+>           //这个9是我们传输的内容实际长度，一般情况下这里解码结果要剩下描述
+>           CharSequence charSequence = decodeByteBuf.readCharSequence(length, Charset.forName("utf-8"));
+>           String result = charSequence.toString();
+>           MyProtocol myProtocol = new MyProtocol();
+>           myProtocol.setContentLength(length);
+>           myProtocol.setBody(result);
+>   
+>           return myProtocol;
+>       }
+>   
+>   }
+>   ```
+>
+>   使用
+>
+>   ```java
+>   pipeline.addLast(new TestLengthFieldBasedFrameDecoder(Integer.MAX_VALUE,8,4,0,8)); //这里是我们继承LengthFieldBasedFrameDecoder来创建的自定义解码器
+>   ```
+>
+>   对应编码器
+>
+>   ```java
+>   public class ProtocolEncoder extends MessageToByteEncoder<MyProtocol> {
+>       @Override
+>       protected void encode(ChannelHandlerContext ctx, MyProtocol msg, ByteBuf out) throws Exception {
+>           out.writeLong(8l);
+>           out.writeInt(msg.getContentLength());
+>           out.writeCharSequence(msg.getBody(), Charset.forName("utf-8"));
+>       }
+>   }
+>   ```
+>
+>   我觉得这个解码器也不是那么的好用，可以使用，但不建议，字节写一个我觉得更好，毕竟这个解码器也只是进行一些解码的前提校验，然后简单粗糙处理一下，实际上还不如自己编写的，只是稍微参考一下这个通用解码器的一些长度前提判断即可
 
 更多的编解码器，根据需要的时候去看看netty内置的，喝多情况都是能够实现的了，如果想要自定义协议进行传输的话，就需要自定义编解码器，当然根据前面的*ReplyingDecoder*的一些demo就可以知道该怎么实现一个自定义协议了，主要是数据的前面几个字节存储的是协议数据的长度，然后根据定义的长度读取数据将其用我们自定义的解码器解码成对应的对象，就是这样一个过程（自定义协议这个看另一个文章：***netty自定义协议***）
 
