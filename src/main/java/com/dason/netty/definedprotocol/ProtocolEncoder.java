@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 public class ProtocolEncoder extends MessageToByteEncoder<MyProtocol> {
     @Override
     protected void encode(ChannelHandlerContext ctx, MyProtocol msg, ByteBuf out) throws Exception {
+//        out.writeLong(8l); //配合TestLengthFieldBasedFrameDecoder使用
         out.writeInt(msg.getContentLength());
         out.writeCharSequence(msg.getBody(), Charset.forName("utf-8"));
     }
